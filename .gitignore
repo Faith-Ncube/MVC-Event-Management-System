@@ -12,6 +12,9 @@ venv/
 db.sqlite3
 staticfiles/
 media/
+#Node Modules
+
+node_modules/
 
 # Environment variables
 .env
