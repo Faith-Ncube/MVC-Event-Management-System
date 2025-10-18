@@ -26,9 +26,9 @@ class EventAttendeesAPIView(generics.ListAPIView):
     """
     This view returns a list of all attendees registered for a specific event.
     """
-    serializer_calss = RegistrationSerializer
+    serializer_class = RegistrationSerializer
 
-    def get_quesryset(self):
+    def get_queryset(self):
         # This method overrides the default queryset to filter registrations
         # based on the event's primary key ('event_pk') passed in the URL.
         event_id = self.kwargs['event_pk']
