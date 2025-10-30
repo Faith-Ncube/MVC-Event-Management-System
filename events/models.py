@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.utils import timezone
+from django.urls import reverse
 
 # Organizer model (extends User)
 class Organizer(models.Model):
@@ -23,6 +24,14 @@ class Venue(models.Model):
 
 # Event model (created by organizer, hosted at venue)
 class Event(models.Model):
+    EVENT_TYPES = [
+        ('conference', 'Conference'),
+        ('workshop', 'Workshop'),
+        ('seminar', 'Seminar'),
+        ('social', 'Social Event'),
+        ('sports', 'Sports Event'),
+        ('other', 'Other'),
+    ]
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, related_name="events")
     venue = models.ForeignKey(Venue, on_delete=models.PROTECT, related_name="events")
     title = models.CharField(max_length=255)
@@ -33,11 +42,29 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.title} @ {self.venue.name}"
+    
+    def get_absolute_url(self):
+        return reverse('event-detail', kwargs={'pk': self.pk}) 
+
+    def is_upcoming(self):
+        return self.date > timezone.now()
+
+    def attendee_count(self):
+        return self.attendees.count()
+          
 
 
 # Attendee model (extends User)
 class Attendee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="attendee_profile")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='attendees')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_attendances')
+    registration_date = models.DateTimeField(auto_now_add=True)
+    has_paid = models.BooleanField(default=False)
+    class Meta:
+        unique_together = ['event', 'user']  # Prevent duplicate registrations
+        verbose_name = 'Attendee'
+        verbose_name_plural = 'Attendees'
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
