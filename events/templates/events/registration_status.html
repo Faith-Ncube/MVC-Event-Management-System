@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Status - EventManager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="card-title mb-0">
+                    <i class="bi bi-person-check"></i> Registration Found
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Attendee Information</h5>
+                        <p><strong>Name:</strong> {{ attendee.full_name }}</p>
+                        <p><strong>Email:</strong> {{ attendee.email }}</p>
+                        <p><strong>Phone:</strong> {{ attendee.phone_number|default:"Not provided" }}</p>
+                        <p><strong>Company:</strong> {{ attendee.company|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Event Information</h5>
+                        <p><strong>Event:</strong> {{ attendee.event.title }}</p>
+                        <p><strong>Date:</strong> {{ attendee.event.start_date|date:"F d, Y" }}</p>
+                        <p><strong>Time:</strong> {{ attendee.event.start_date|time:"g:i A" }}</p>
+                        <p><strong>Location:</strong> {{ attendee.event.location }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Registration Details</h5>
+                        <p><strong>Confirmation Code:</strong> <code>{{ attendee.confirmation_code }}</code></p>
+                        <p><strong>Registration Date:</strong> {{ attendee.registration_date|date:"M d, Y" }}</p>
+                        <p><strong>Category:</strong> {{ attendee.get_category_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Status</h5>
+                        <p>
+                            <strong>Attendance Status:</strong> 
+                            <span class="badge 
+                                {% if attendee.attendance_status == 'checked_in' %}bg-success
+                                {% elif attendee.attendance_status == 'registered' %}bg-warning
+                                {% elif attendee.attendance_status == 'cancelled' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ attendee.get_attendance_status_display }}
+                            </span>
+                        </p>
+                        {% if attendee.check_in_time %}
+                        <p><strong>Check-in Time:</strong> {{ attendee.check_in_time|date:"M d, Y g:i A" }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <a href="{% url 'events:event_list' %}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> Browse Events
+                    </a>
+                    <a href="{% url 'events:check_registration' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-search"></i> Check Another
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

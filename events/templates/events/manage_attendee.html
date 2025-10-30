@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="bi bi-people"></i>
+            {% if event %}Manage Attendees - {{ event.title }}{% else %}All Attendees{% endif %}
+        </h1>
+        <div>
+            {% if event %}
+            <a href="{% url 'events:check_in_attendee' event.id %}" class="btn btn-success">
+                <i class="bi bi-qr-code-scan"></i> Check-in
+            </a>
+            <a href="{% url 'events:attendance_report' event.id %}" class="btn btn-info">
+                <i class="bi bi-graph-up"></i> Report
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.total }}</h4>
+                    <p class="mb-0">Total Registered</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.checked_in }}</h4>
+                    <p class="mb-0">Checked In</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.registered }}</h4>
+                    <p class="mb-0">Pending Check-in</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h4>{{ stats.cancelled }}</h4>
+                    <p class="mb-0">Cancelled</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-8">
+                    {{ form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.category }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendees Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                            <th>Confirmation Code</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Registration Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendee in attendees %}
+                        <tr>
+                            <td>{{ attendee.full_name }}</td>
+                            <td>{{ attendee.email }}</td>
+                            <td>{{ attendee.company|default:"-" }}</td>
+                            <td><code>{{ attendee.confirmation_code }}</code></td>
+                            <td>
+                                <span class="badge bg-secondary">{{ attendee.get_category_display }}</span>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if attendee.attendance_status == 'checked_in' %}bg-success
+                                    {% elif attendee.attendance_status == 'registered' %}bg-warning
+                                    {% elif attendee.attendance_status == 'cancelled' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ attendee.get_attendance_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ attendee.registration_date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <form method="post" action="{% url 'events:update_attendance_status' attendee.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="checked_in">
+                                        <button type="submit" class="btn btn-success" 
+                                                {% if attendee.attendance_status == 'checked_in' %}disabled{% endif %}>
+                                            Check In
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'events:update_attendance_status' attendee.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="btn btn-danger">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No attendees found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

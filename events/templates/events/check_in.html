@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-qr-code-scan"></i>
+                        Check-in Attendees - {{ event.title }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="checkin-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label h5">Enter Confirmation Code</label>
+                            {{ form.confirmation_code }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-check-circle"></i>
+                            Check In
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Check-ins
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if recent_checkins %}
+                    <div class="list-group">
+                        {% for attendee in recent_checkins %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ attendee.full_name }}</h6>
+                                <small>{{ attendee.check_in_time|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1 small">{{ attendee.company }}</p>
+                            <small class="text-muted">Code: {{ attendee.confirmation_code }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No check-ins yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkin-form');
+    const input = document.getElementById('{{ form.confirmation_code.id_for_label }}');
+    
+    form.addEventListener('submit', function() {
+        input.value = input.value.toUpperCase();
+    });
+    
+    input.focus();
+});
+</script>
+{% endblock %}

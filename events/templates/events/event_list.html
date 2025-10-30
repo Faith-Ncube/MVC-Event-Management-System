@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - EventManager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Upcoming Events</h1>
+        <p class="text-muted">Browse and register for upcoming events</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    {% for event in events %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ event.title }}</h5>
+                <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+                
+                <div class="event-capacity mb-3">
+                    {% if event.is_full %}
+                        <span class="badge bg-danger">Fully Booked</span>
+                    {% elif event.available_spots <= 5 %}
+                        <span class="badge bg-warning">Only {{ event.available_spots }} spots left!</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ event.available_spots }} spots available</span>
+                    {% endif %}
+                </div>
+                
+                <ul class="list-unstyled small">
+                    <li><i class="bi bi-calendar"></i> {{ event.start_date|date:"M d, Y" }}</li>
+                    <li><i class="bi bi-clock"></i> {{ event.start_date|time:"g:i A" }}</li>
+                    <li><i class="bi bi-geo-alt"></i> {{ event.location }}</li>
+                    <li><i class="bi bi-people"></i> {{ event.registered_attendees_count }}/{{ event.max_attendees }} registered</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'events:event_detail' event.id %}" class="btn btn-primary btn-sm">View Details</a>
+                
+                {% if event.is_full %}
+                    <button class="btn btn-secondary btn-sm" disabled>Event Full</button>
+                {% elif not event.registration_open %}
+                    <button class="btn btn-secondary btn-sm" disabled>Registration Closed</button>
+                {% else %}
+                    <a href="{% url 'events:register_attendee' event.id %}" class="btn btn-success btn-sm">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>No events available at the moment</h4>
+            <p>Check back later for upcoming events!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

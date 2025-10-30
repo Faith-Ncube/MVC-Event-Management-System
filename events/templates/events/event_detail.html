@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - EventManager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ event.title }}</h1>
+        <p class="lead">{{ event.description }}</p>
+        
+        <!-- Capacity Alert -->
+        {% if event.is_full %}
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle"></i> Event Fully Booked</h5>
+            <p class="mb-0">This event has reached its maximum capacity of {{ event.max_attendees }} attendees.</p>
+        </div>
+        {% elif event.available_spots <= 10 %}
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-clock"></i> Limited Spots Available</h5>
+            <p class="mb-0">Only {{ event.available_spots }} spots remaining - register now before they're gone!</p>
+        </div>
+        {% endif %}
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h5>Event Details</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Start:</strong> {{ event.start_date|date:"M d, Y g:i A" }}</li>
+                    <li><strong>End:</strong> {{ event.end_date|date:"M d, Y g:i A" }}</li>
+                    <li><strong>Location:</strong> {{ event.location }}</li>
+                    <li><strong>Capacity:</strong> 
+                        <span class="{% if event.is_full %}text-danger{% else %}text-success{% endif %}">
+                            {{ event.registered_attendees_count }}/{{ event.max_attendees }}
+                        </span>
+                    </li>
+                    <li><strong>Available Spots:</strong> 
+                        {% if event.is_full %}
+                            <span class="text-danger">0</span>
+                        {% else %}
+                            <span class="text-success">{{ event.available_spots }}</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {% if user.is_staff %}
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Event Management</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'events:manage_attendees' event.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-people"></i> Manage Attendees
+                    </a>
+                    <a href="{% url 'events:check_in_attendee' event.id %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-qr-code-scan"></i> Check-in Station
+                    </a>
+                    <a href="{% url 'events:attendance_report' event.id %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-graph-up"></i> View Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Registration Status</h5>
+                
+                {% if event.is_full %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i><br>
+                        <strong>Fully Booked</strong><br>
+                        <small>No more registrations accepted</small>
+                    </div>
+                {% elif not event.registration_open %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-pause-circle"></i><br>
+                        <strong>Registration Closed</strong><br>
+                        <small>Registration is no longer open</small>
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <div class="progress" style="height: 25px;">
+                            {% widthratio event.registered_attendees_count event.max_attendees 100 as percentage %}
+                            <div class="progress-bar 
+                                {% if percentage|add:0 < 70 %}bg-success
+                                {% elif percentage|add:0 < 90 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                
+                                aria-valuenow="{{ percentage }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                {{ percentage }}%
+                            </div> 
+                        </div>
+                        <small class="text-muted">
+                            {{ event.registered_attendees_count }} of {{ event.max_attendees }} registered
+                        </small>
+                    </div>
+                    
+                    <p class="text-success">
+                        <strong>{{ event.available_spots }} spots remaining</strong>
+                    </p>
+                    <a href="{% url 'events:register_attendee' event.id %}" class="btn btn-primary btn-lg w-100">
+                        Register Now
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <h6>Already registered?</h6>
+                <a href="{% url 'events:check_registration' %}" class="btn btn-outline-secondary btn-sm">
+                    Check Your Registration
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Events
+        </a>
+    </div>
+</div>
+{% endblock %}

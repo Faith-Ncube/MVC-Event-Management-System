@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Check Registration Status - EventManager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h2 class="card-title mb-0">
+                    <i class="bi bi-search"></i> Check Registration Status
+                </h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                               placeholder="Enter the email you used for registration">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmation_code" class="form-label">Confirmation Code</label>
+                        <input type="text" class="form-control" id="confirmation_code" name="confirmation_code" required 
+                               placeholder="Enter your confirmation code">
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Check Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

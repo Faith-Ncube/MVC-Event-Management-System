@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Successful - EventManager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <div class="text-success mb-3">
+                    <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h2 class="card-title">Registration Successful!</h2>
+                <p class="card-text">You have successfully registered for <strong>{{ attendee.event.title }}</strong>.</p>
+                
+                <div class="confirmation-details mt-4 p-3 bg-light rounded">
+                    <h5>{{ attendee.event.title }}</h5>
+                    <p class="mb-1"><strong>Name:</strong> {{ attendee.full_name }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ attendee.email }}</p>
+                    <p class="mb-1"><strong>Confirmation Code:</strong> 
+                        <code class="bg-white p-1 rounded">{{ attendee.confirmation_code }}</code>
+                    </p>
+                    <p class="mb-0"><strong>Date:</strong> {{ attendee.event.start_date|date:"F d, Y" }}</p>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <strong>Important:</strong> Please save your confirmation code. 
+                    You'll need it to check your registration status and for event check-in.
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'events:event_list' %}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> Browse More Events
+                    </a>
+                    <a href="{% url 'events:my_registrations' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-check"></i> View My Registrations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

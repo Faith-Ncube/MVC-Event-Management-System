@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}My Registrations - EventManager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>My Event Registrations</h1>
+        
+        {% if registrations %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Category</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th>Confirmation Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registration in registrations %}
+                    <tr>
+                        <td>
+                            <strong>{{ registration.event.title }}</strong>
+                        </td>
+                        <td>{{ registration.event.start_date|date:"M d, Y" }}</td>
+                        <td>{{ registration.event.location }}</td>
+                        <td>
+                            <span class="badge bg-{% if registration.category == 'vip' %}warning{% elif registration.category == 'speaker' %}info{% elif registration.category == 'sponsor' %}success{% else %}secondary{% endif %}">
+                                {{ registration.get_category_display }}
+                            </span>
+                        </td>
+                        <td>{{ registration.registration_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if registration.attendance_status == 'checked_in' %}bg-success
+                                {% elif registration.attendance_status == 'registered' %}bg-warning
+                                {% elif registration.attendance_status == 'cancelled' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ registration.get_attendance_status_display }}
+                            </span>
+                        </td>
+                        <td><code>{{ registration.confirmation_code }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <h4>No Registrations Found</h4>
+            <p>You haven't registered for any events yet.</p>
+            <a href="{% url 'events:event_list' %}" class="btn btn-primary">Browse Events</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="bi bi-graph-up"></i>
+            Attendance Report - {{ event.title }}
+        </h1>
+        <div>
+            <a href="{% url 'events:manage_attendees' event.id %}" class="btn btn-primary">
+                <i class="bi bi-people"></i> Manage Attendees
+            </a>
+            <a href="{% url 'events:check_in_attendee' event.id %}" class="btn btn-success">
+                <i class="bi bi-qr-code-scan"></i> Check-in
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ attendees.count }}</h4>
+                    <p class="mb-0">Total Registered</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ status_counts.checked_in }}</h4>
+                    <p class="mb-0">Checked In</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ status_counts.registered }}</h4>
+                    <p class="mb-0">Registered (Not Checked In)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h4>{{ status_counts.cancelled }}</h4>
+                    <p class="mb-0">Cancelled</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Breakdown -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Category Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Report -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Detailed Attendance Report</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Registration Date</th>
+                            <th>Check-in Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendee in attendees %}
+                        <tr>
+                            <td>{{ attendee.full_name }}</td>
+                            <td>{{ attendee.email }}</td>
+                            <td>{{ attendee.get_category_display }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if attendee.attendance_status == 'checked_in' %}bg-success
+                                    {% elif attendee.attendance_status == 'registered' %}bg-warning
+                                    {% elif attendee.attendance_status == 'cancelled' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ attendee.get_attendance_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ attendee.registration_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if attendee.check_in_time %}
+                                    {{ attendee.check_in_time|date:"M d, Y g:i A" }}
+                                {% else %}
+                                    <span class="text-muted">Not checked in</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Attendance Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    const attendanceChart = new Chart(attendanceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Checked In', 'Registered', 'Cancelled', 'No Show'],
+            datasets: [{
+                data: [
+                    { status_counts ,checked_in },
+                    { status_counts,egistered },
+                    { status_counts,ancelled },
+                    { status_counts,o_show },
+                ],
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6c757d'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+
+// Category Chart
+const categoryData = {category_data_json,safe};
+
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categoryData).map(key => {
+                const categories = {
+                    'general': 'General',
+                    'vip': 'VIP',
+                    'speaker': 'Speaker',
+                    'sponsor': 'Sponsor'
+                };
+                return categories[key] || key;
+            }),
+            datasets: [{
+                data: Object.values(categoryData),
+                backgroundColor: [
+                    '#6c757d',
+                    '#ffc107',
+                    '#17a2b8',
+                    '#28a745'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
