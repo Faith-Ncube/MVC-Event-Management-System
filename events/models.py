@@ -91,3 +91,56 @@ class Attendee(models.Model):
         if not self.confirmation_code:
             self.confirmation_code = str(uuid.uuid4())[:8].upper()
         super().save(*args, **kwargs)
+
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, full_name, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, full_name=full_name, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, full_name, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, full_name, password, **extra_fields)
+
+
+class CustomUser(AbstractUser):
+    username = None  # Remove username field
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=100, blank=False)
+
+    # Explicitly define groups and user_permissions with unique related_names
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='event_app_customuser_set',  # ← unique name
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='event_app_customuser_set',  # ← unique name
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['full_name']
+
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return self.email

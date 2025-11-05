@@ -9,6 +9,12 @@ from django.utils import timezone
 from django.db import transaction
 from .models import Event, Attendee
 from .forms import AttendeeRegistrationForm, AttendeeSearchForm, CheckInForm
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+from .models import CustomUser
+from django.contrib import messages # Import messages for success/error feedback
+from django.contrib.auth.decorators import login_required
 
 # Public views for attendees
 def event_list(request):
@@ -264,4 +270,93 @@ def check_registration_api(request, event_id):
         'spots_remaining': event.max_attendees - event.registered_attendees_count()
     })
 
-# Create your views here.
+# This is the login view
+User = get_user_model()               # ✅ This will point to Event_App.CustomUser
+
+def login_view(request):
+   # if request.user.is_authenticated:
+   #     return redirect('dashboard')
+
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        remember_me = request.POST.get('remember_me')  # Checkbox value
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return render(request, 'Event_App/login.html', {
+                'error': 'Invalid email or password.'
+            })
+
+        if user.check_password(password):
+            login(request, user)
+
+            # Set session expiry
+            if not remember_me:
+                # Session expires when browser is closed
+                request.session.set_expiry(0)
+            else:
+                # Default: session lasts for 2 weeks (in seconds)
+                request.session.set_expiry(1209600)  # 2 weeks
+
+            return redirect('dashboard')
+
+        else:
+            return render(request, 'Event_App/login.html', {
+                'error': 'Invalid email or password.'
+            })
+
+    return render(request, 'Event_App/login.html')
+
+
+
+
+def signup_view(request):
+    if request.method == 'POST':
+        full_name = request.POST.get('fullname')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            return render(request, 'Event_App/signup.html', {
+                'error': 'Passwords do not match.'
+            })
+
+        if CustomUser.objects.filter(email=email).exists():
+            return render(request, 'Event_App/signup.html', {
+                'error': 'Email already taken.'
+            })
+
+        try:
+            user = CustomUser.objects.create_user(
+                email=email,
+                password=password,
+                full_name=full_name
+            )
+            user.save()
+
+            messages.success(request, 'Account created successfully! Please log in.', extra_tags='signup_success')
+
+            return redirect('login')
+
+        except Exception as e:
+            return render(request, 'Event_App/signup.html', {
+                'error': 'An error occurred during registration.'
+            })
+
+    return render(request, 'Event_App/signup.html')
+
+
+
+
+def forgotpassword_view(request):
+    return render(request, 'Event_App/forgotpassword.html')
+
+@login_required
+def dashboard_view(request):
+    return render(request, 'Event_App/dashboard.html')
+
+def markets_view(request):
+    return render(request, 'Event_App/markets.html')

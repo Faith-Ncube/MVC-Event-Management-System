@@ -1,16 +1,67 @@
-{% extends "events/base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="{% static 'Event_App/css/login.css' %}">
+</head>
+<body>
 
-{% block title %}Login{% endblock %}
+{% if messages %}
+    {% for message in messages %}
+        {% if 'signup_success' in message.tags %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2>Login</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+    <div class="background">
+        <div class="card">
+            <p class="welcome">Welcome back</p>
+            <p class="instruction">Please verify your identity to continue</p>
+
+            <form action="{% url 'login' %}" method="post">
+                {% csrf_token %}
+
+                <label for="email">Email address</label>
+                <div class="input-group">
+                    <span class="icon"><i class="fas fa-envelope"></i></span>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <span class="icon"><i class="fas fa-lock"></i></span>
+                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                </div>
+
+                <div class="remember">
+                    <input type="checkbox" id="remember" name="remember_me">
+                    <label for="remember">Remember me</label>
+                    <a href="{% url 'forgotpassword' %}" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="continue-btn">Continue</button>
+
+                <p class="signup-link">
+                    Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+                </p>
+            </form>
+        </div>
     </div>
-</div>
-{% endblock %}
+
+    {% if error %}
+      <script>
+        alert("{{ error }}");
+      </script>
+    {% endif %}
+
+    <!-- Optional: Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"  crossorigin="anonymous"></script>
+</body>
+</html>
